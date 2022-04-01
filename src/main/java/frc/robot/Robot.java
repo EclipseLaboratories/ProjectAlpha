@@ -4,16 +4,19 @@
 
 package frc.robot;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+// import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.drive.KilloughDrive;
+import edu.wpi.first.wpilibj.AddressableLED;
+import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 
 
 /**
@@ -30,14 +33,26 @@ public class Robot extends TimedRobot {
   XboxController control;
   
   // Talon SRX motor controllers
-  TalonSRX m_Side1Lead;
-  TalonSRX m_Side1Follow;
-  TalonSRX m_Side2Lead;
-  TalonSRX m_Side2Follow;
-  TalonSRX m_Side3Lead;
-  TalonSRX m_Side3Follow;
+  WPI_TalonSRX m_Side1Lead;
+  WPI_TalonSRX m_Side1Follow;
+  WPI_TalonSRX m_Side2Lead;
+  WPI_TalonSRX m_Side2Follow;
+  WPI_TalonSRX m_Side3Lead;
+  WPI_TalonSRX m_Side3Follow;
+
+  MotorController m_Left;
+  MotorController m_Right;
+  MotorController m_Back;
+  
+  KilloughDrive m_drivetrain;
 
   PowerDistribution pdp;
+
+  AddressableLED leftEye;
+  AddressableLEDBuffer leftBuffer;
+  
+  AddressableLED rightEye;
+  AddressableLEDBuffer rightBuffer;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -51,19 +66,34 @@ public class Robot extends TimedRobot {
     control = new XboxController(0);
 
     // Talon SRX motor controllers
-    m_Side1Lead = new TalonSRX(0);
-    m_Side1Follow = new TalonSRX(1);
-    m_Side2Lead = new TalonSRX(2);
-    m_Side2Follow = new TalonSRX(3);
-    m_Side3Lead = new TalonSRX(4);
-    m_Side3Follow = new TalonSRX(5);
+    m_Side1Lead = new WPI_TalonSRX(0);
+    m_Side1Follow = new WPI_TalonSRX(1);
+    m_Side2Lead = new WPI_TalonSRX(2);
+    m_Side2Follow = new WPI_TalonSRX(3);
+    m_Side3Lead = new WPI_TalonSRX(4);
+    m_Side3Follow = new WPI_TalonSRX(5);
 
     // Set up the motor controllers to follow each other
     m_Side1Follow.follow(m_Side1Lead);
     m_Side2Follow.follow(m_Side2Lead);
     m_Side3Follow.follow(m_Side3Lead);
 
+    m_drivetrain = new KilloughDrive(m_Side1Lead, m_Side2Lead, m_Side3Lead);
+
     pdp = new PowerDistribution(0, ModuleType.kCTRE);
+
+    // LED Code!
+    leftEye = new AddressableLED(8);
+    leftBuffer = new AddressableLEDBuffer(19);
+    leftEye.setData(leftBuffer);
+    leftEye.setLength(leftBuffer.getLength());
+    leftEye.start();
+    
+    rightEye = new AddressableLED(9);
+    rightBuffer = new AddressableLEDBuffer(19);
+    rightEye.setData(rightBuffer);
+    rightEye.setLength(rightBuffer.getLength());
+    rightEye.start();
   }
 
   /**
@@ -117,23 +147,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    // Forwards and backwards
-    m_Side2Lead.set(ControlMode.PercentOutput, control.getLeftY());
-    m_Side3Lead.set(ControlMode.PercentOutput, -control.getLeftY());
-
-    // Strafing
-    if (control.getLeftX() > 0) {
-      m_Side1Lead.set(ControlMode.PercentOutput, control.getLeftX());
-      m_Side3Lead.set(ControlMode.PercentOutput, -control.getLeftX());
-    } else if (control.getLeftX() < 0) {
-      m_Side1Lead.set(ControlMode.PercentOutput, -control.getLeftX());
-      m_Side2Lead.set(ControlMode.PercentOutput, control.getLeftX());
-    }
-
-    // Rotating
-    m_Side1Lead.set(ControlMode.PercentOutput, control.getRightX());
-    m_Side2Lead.set(ControlMode.PercentOutput, control.getRightX());
-    m_Side3Lead.set(ControlMode.PercentOutput, control.getRightX());
+    m_drivetrain.driveCartesian(control.getLeftX(), control.getLeftY(), control.getRightX());
   }
 
   /** This function is called once when the robot is disabled. */
