@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.RobotBase;
 
 
 /**
@@ -26,17 +27,17 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
-  private XboxController control;
+  XboxController control;
   
   // Talon SRX motor controllers
-  private TalonSRX m_Side1Lead;
-  private TalonSRX m_Side1Follow;
-  private TalonSRX m_Side2Lead;
-  private TalonSRX m_Side2Follow;
-  private TalonSRX m_Side3Lead;
-  private TalonSRX m_Side3Follow;
+  TalonSRX m_Side1Lead;
+  TalonSRX m_Side1Follow;
+  TalonSRX m_Side2Lead;
+  TalonSRX m_Side2Follow;
+  TalonSRX m_Side3Lead;
+  TalonSRX m_Side3Follow;
 
-  private PowerDistribution pdp;
+  PowerDistribution pdp;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -116,8 +117,23 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+    // Forwards and backwards
     m_Side2Lead.set(ControlMode.PercentOutput, control.getLeftY());
     m_Side3Lead.set(ControlMode.PercentOutput, -control.getLeftY());
+
+    // Strafing
+    if (control.getLeftX() > 0) {
+      m_Side1Lead.set(ControlMode.PercentOutput, control.getLeftX());
+      m_Side3Lead.set(ControlMode.PercentOutput, -control.getLeftX());
+    } else if (control.getLeftX() < 0) {
+      m_Side1Lead.set(ControlMode.PercentOutput, -control.getLeftX());
+      m_Side2Lead.set(ControlMode.PercentOutput, control.getLeftX());
+    }
+
+    // Rotating
+    m_Side1Lead.set(ControlMode.PercentOutput, control.getRightX());
+    m_Side2Lead.set(ControlMode.PercentOutput, control.getRightX());
+    m_Side3Lead.set(ControlMode.PercentOutput, control.getRightX());
   }
 
   /** This function is called once when the robot is disabled. */
