@@ -124,6 +124,13 @@ public class Robot extends TimedRobot {
     m_autoSelected = m_chooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
+    for (var i = 0; i < leftBuffer.getLength(); i++) {
+      // Sets the specified LED to the RGB values for red
+      leftBuffer.setRGB(i, 255, 255, 20);
+      rightBuffer.setRGB(i, 255, 255, 20);
+   }
+    leftEye.setData(leftBuffer);
+    rightEye.setData(rightBuffer);
   }
 
   /** This function is called periodically during autonomous. */
